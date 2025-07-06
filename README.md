@@ -12,7 +12,7 @@ A modern, fast, and lightweight TODO app built with **React**, **TailwindCSS**, 
 - 🔐 User authentication with PocketBase
 - 🔄 Real-time updates (optional via PocketBase subscriptions)
 
----
+ https://pocketodo.netlify.app/
 
 ## 🔧 Tech Stack
 
