@@ -1,4 +1,3 @@
-
 import { Route } from "@tanstack/react-router";
 import { rootRoute } from "./root";
 import { Home } from "../components/home/Home";
