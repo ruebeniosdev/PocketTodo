@@ -24,13 +24,13 @@ export const TodoItem = ({
   isAuthor: boolean;
   onToggleCompleted: (id: string) => void;
   onDelete: (id: string) => void;
-  onEdit?: (id: string, newTitle: string) => void;
+  onEdit: (id: string, newTitle: string) => void; // ✅ made required
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
 
   const handleEditSave = () => {
-    if (editTitle.trim() !== "" && onEdit) {
+    if (editTitle.trim() !== "") {
       onEdit(id, editTitle.trim());
     }
     setIsEditing(false);
@@ -52,7 +52,7 @@ export const TodoItem = ({
           />
         ) : (
           <p
-            className={`font-medium break-words ${
+            className={`font-medium break-words cursor-pointer ${
               completed ? "line-through text-muted-foreground" : ""
             }`}
             onDoubleClick={() => isAuthor && setIsEditing(true)}
@@ -64,9 +64,7 @@ export const TodoItem = ({
         {visibility === "public" && (
           <p className="text-xs text-muted-foreground">
             By: {authorName ?? "Anonymous"} • Last edited:{" "}
-            {lastEditedAt
-              ? new Date(lastEditedAt).toLocaleString()
-              : "Unknown"}
+            {lastEditedAt ? new Date(lastEditedAt).toLocaleString() : "Unknown"}
           </p>
         )}
       </div>
@@ -75,6 +73,7 @@ export const TodoItem = ({
         <Button size="sm" onClick={() => onToggleCompleted(id)}>
           {completed ? "Undo" : "Done"}
         </Button>
+
         {isAuthor && (
           <>
             <Button
