@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { TodoItem } from "./components/TodoItem";
-import type { Todo, TodoVisibility } from "./types/Todo";
-import { pb } from "./lib/PocketBase";
+import { TodoItem } from "./TodoItem";
+import type { Todo, TodoVisibility } from "../../types/Todo";
+import { pb } from "../../lib/PocketBase";
 import { useNavigate } from "@tanstack/react-router";
 
 export const TodoList = () => {
@@ -22,7 +22,10 @@ export const TodoList = () => {
       try {
         const publicTodos = await pb
           .collection("todos")
-          .getFullList<Todo>({ filter: 'visibility = "public"', sort: "-created" });
+          .getFullList<Todo>({
+            filter: 'visibility = "public"',
+            sort: "-created",
+          });
 
         const privateTodos = userId
           ? await pb.collection("todos").getFullList<Todo>({
@@ -49,7 +52,8 @@ export const TodoList = () => {
       unsubscribe = await pb.collection("todos").subscribe("*", (e) => {
         const record = e.record as unknown as Todo;
 
-        const isUserPrivate = record.visibility === "private" && record.authorId === userId;
+        const isUserPrivate =
+          record.visibility === "private" && record.authorId === userId;
         const isPublic = record.visibility === "public";
 
         if (!isPublic && !isUserPrivate) return;
@@ -173,7 +177,9 @@ export const TodoList = () => {
             <select
               className="rounded border px-2 py-1"
               value={newVisibility}
-              onChange={(e) => setNewVisibility(e.target.value as TodoVisibility)}
+              onChange={(e) =>
+                setNewVisibility(e.target.value as TodoVisibility)
+              }
             >
               <option value="public">Public</option>
               <option value="private">Private</option>

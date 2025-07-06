@@ -1,54 +1,20 @@
 import {
   createRouter,
   RouterProvider,
-  Route,
-  RootRoute,
 } from "@tanstack/react-router";
 
-import { MainLayout } from "./MainLayout";
-import { Login } from "./Auth/Login";
-import { Register } from "./Auth/Register";
-import { ForgotPassword } from "./Auth/ForgotPassword";
-import { TodoList } from "./TodoList";
-import { Home } from "./components/Home";
-
-const rootRoute = new RootRoute({ component: MainLayout });
-
-const indexRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/",
-  component: Home,
-});
-
-const loginRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/login",
-  component: Login,
-});
-
-const registerRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/register",
-  component: Register,
-});
-
-const forgotPassword = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/forgotPassword",
-  component: ForgotPassword,
-});
-
-const todoRoute = new Route({
-  getParentRoute: () => rootRoute,
-  path: "/todos",
-  component: TodoList,
-});
+import { rootRoute } from "./routes/root";
+import { indexRoute } from "./routes/index";
+import { loginRoute } from "./routes/login";
+import { registerRoute } from "./routes/register";
+import { forgotPasswordRoute } from "./routes/forgot-password";
+import { todoRoute } from "./routes/todos";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
-  forgotPassword,
+  forgotPasswordRoute,
   todoRoute,
 ]);
 
