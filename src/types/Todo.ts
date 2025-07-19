@@ -2,11 +2,10 @@ export type Todo = {
   id: string;
   title: string;
   completed: boolean;
-  visibility: TodoVisibility;
-
+  visibility: "public" | "private";
   authorId: string;
   authorName?: string;
-  lastEditedAt?: string;
+  created?: string;
 };
 
 export type CreateTodoInput = {

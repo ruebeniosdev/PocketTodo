@@ -1,6 +1,22 @@
+// components/TodoItem.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CheckCircle, Circle, Pencil, Trash } from "lucide-react";
+
+type Props = {
+  id: string;
+  title: string;
+  completed: boolean;
+  visibility: "public" | "private";
+  authorId?: string;
+  authorName?: string;
+  created?: string;
+  isAuthor: boolean;
+  onToggleCompleted: (id: string, completed: boolean) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string, newTitle: string) => void;
+};
 
 export const TodoItem = ({
   id,
@@ -8,24 +24,12 @@ export const TodoItem = ({
   completed,
   visibility,
   authorName,
-  lastEditedAt,
+  created,
   isAuthor,
   onToggleCompleted,
   onDelete,
   onEdit,
-}: {
-  id: string;
-  title: string;
-  completed: boolean;
-  visibility: "public" | "private";
-  authorId?: string;
-  authorName?: string;
-  lastEditedAt?: string;
-  isAuthor: boolean;
-  onToggleCompleted: (id: string) => void;
-  onDelete: (id: string) => void;
-  onEdit: (id: string, newTitle: string) => void; // ✅ made required
-}) => {
+}: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
 
@@ -37,8 +41,8 @@ export const TodoItem = ({
   };
 
   return (
-    <div className="flex items-center justify-between bg-white p-3 rounded shadow w-full">
-      <div className="flex flex-col gap-1 w-full">
+    <div className="flex items-start justify-between bg-white p-3 rounded shadow w-full gap-3">
+      <div className="flex flex-col w-full">
         {isEditing ? (
           <Input
             value={editTitle}
@@ -63,32 +67,40 @@ export const TodoItem = ({
 
         {visibility === "public" && (
           <p className="text-xs text-muted-foreground">
-            By: {authorName ?? "Anonymous"} • Last edited:{" "}
-            {lastEditedAt ? new Date(lastEditedAt).toLocaleString() : "Unknown"}
+            By: {authorName ?? "Anonymous"} • Created:{" "}
+            {created ? new Date(created).toLocaleString() : "Unknown"}
           </p>
         )}
       </div>
 
-      <div className="flex gap-2 items-center ml-4 shrink-0">
-        <Button size="sm" onClick={() => onToggleCompleted(id)}>
-          {completed ? "Undo" : "Done"}
+      <div className="flex gap-2 items-center shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onToggleCompleted(id, completed)}
+        >
+          {completed ? (
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          ) : (
+            <Circle className="w-5 h-5" />
+          )}
         </Button>
 
         {isAuthor && (
           <>
             <Button
-              variant="secondary"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={() => setIsEditing(true)}
             >
-              Edit
+              <Pencil className="w-5 h-5" />
             </Button>
             <Button
-              variant="destructive"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={() => onDelete(id)}
             >
-              Delete
+              <Trash className="w-5 h-5 text-red-500" />
             </Button>
           </>
         )}

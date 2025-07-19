@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useLoginForm } from "@/hooks/login/useLoginForm";
 import { validateEmail, validatePassword } from "@/lib/utils/validators";
-import { FieldError } from "./FieldError";
+import { FieldError } from "@/components/auth/FieldError";
 
 export const Login = () => {
   const { form, loginMutation, googleLogin, formError, setFormError } =

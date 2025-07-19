@@ -1,208 +1,158 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TodoItem } from "./TodoItem";
-import type { Todo, TodoVisibility } from "../../types/Todo";
-import { pb } from "../../lib/PocketBase";
-import { useNavigate } from "@tanstack/react-router";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { useAddTodoForm } from "@/hooks/useAddTodoForm";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { useTodos } from "@/hooks/useTodos";
+import { useEditTodo } from "@/hooks/useEditTodo";
+import { useDeleteTodo } from "@/hooks/useDeleteTodo";
+import { useToggleTodo } from "@/hooks/useToggleTodo";
+import { TodoItem } from "@/components/tasks/TodoItem";
 
 export const TodoList = () => {
-  const navigate = useNavigate();
-  const isLoggedIn = !!pb.authStore.token;
-  const userId = pb.authStore.record?.id;
+  const { isLoggedIn, userId, authorName, logout } = useAuthInfo();
+  const canLoadTodos = !!userId && !!authorName;
 
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodo, setNewTodo] = useState("");
-  const [newVisibility, setNewVisibility] = useState<TodoVisibility>("public");
+  const [page, setPage] = useState(1);
+  const perPage = 10;
 
-  // ✅ Fetch todos on mount
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const publicTodos = await pb
-          .collection("todos")
-          .getFullList<Todo>({
-            filter: 'visibility = "public"',
-            sort: "-created",
-          });
+  const { data, isLoading, isError, isFetching } = useTodos(
+    userId ?? "",
+    page,
+    perPage
+  );
 
-        const privateTodos = userId
-          ? await pb.collection("todos").getFullList<Todo>({
-              filter: `visibility = "private" && authorId = "${userId}"`,
-              sort: "-created",
-            })
-          : [];
+  const totalPages = data?.totalPages ?? 1;
 
-        setTodos([...publicTodos, ...privateTodos]);
-      } catch (err) {
-        console.error("Fetch failed", err);
-        setTodos([]);
-      }
-    };
+  const { title, visibility, setTitle, setVisibility, handleAdd, reset } =
+    useAddTodoForm(userId ?? "", authorName ?? "");
 
-    fetchTodos();
-  }, [userId]);
+  const editTodo = useEditTodo();
+  const deleteTodo = useDeleteTodo();
+  const toggleTodo = useToggleTodo();
 
-  // ✅ PocketBase realtime updates (public + user's private todos)
-  useEffect(() => {
-    let unsubscribe: () => void;
-
-    const subscribeToTodos = async () => {
-      unsubscribe = await pb.collection("todos").subscribe("*", (e) => {
-        const record = e.record as unknown as Todo;
-
-        const isUserPrivate =
-          record.visibility === "private" && record.authorId === userId;
-        const isPublic = record.visibility === "public";
-
-        if (!isPublic && !isUserPrivate) return;
-
-        setTodos((prev) => {
-          if (e.action === "create") {
-            const exists = prev.some((t) => t.id === record.id);
-            return exists ? prev : [record, ...prev];
-          }
-
-          if (e.action === "update") {
-            return prev.map((t) => (t.id === record.id ? record : t));
-          }
-
-          if (e.action === "delete") {
-            return prev.filter((t) => t.id !== record.id);
-          }
-
-          return prev;
-        });
-      });
-    };
-
-    subscribeToTodos();
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [userId]);
-
-  const handleAddTodo = async () => {
-    if (!newTodo.trim()) return;
-
-    try {
-      await pb.collection("todos").create({
-        title: newTodo.trim(),
-        visibility: newVisibility,
-        completed: false,
-        authorId: userId,
-        authorName: pb.authStore.record?.email ?? "Anonymous",
-        lastEditedAt: new Date().toISOString(),
-      });
-
-      setNewTodo(""); // Let realtime handle the UI
-    } catch (err) {
-      console.error("Create failed", err);
-    }
-  };
-
-  const handleToggleCompleted = async (id: string) => {
-    const todo = todos.find((t) => t.id === id);
-    if (!todo) return;
-
-    const updated = {
-      completed: !todo.completed,
-      lastEditedAt: new Date().toISOString(),
-    };
-
-    try {
-      await pb.collection("todos").update(id, updated);
-      // No local update needed, realtime handles it
-    } catch (err) {
-      console.error("Toggle failed", err);
-    }
-  };
-
-  const handleEdit = async (id: string, newTitle: string) => {
-    if (!newTitle.trim()) return;
-
-    try {
-      await pb.collection("todos").update(id, {
-        title: newTitle,
-        lastEditedAt: new Date().toISOString(),
-      });
-      // No local update needed, realtime handles it
-    } catch (err) {
-      console.error("Edit failed", err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await pb.collection("todos").delete(id);
-      // No local update needed, realtime handles it
-    } catch (err) {
-      console.error("Delete failed", err);
-    }
-  };
-
-  const handleLogout = () => {
-    pb.authStore.clear();
-    navigate({ to: "/login" });
-  };
+  if (!canLoadTodos) return null;
 
   return (
     <div className="flex flex-col items-center h-screen bg-muted px-4">
-      {/* Top NavBar */}
       <nav className="w-full flex justify-between items-center py-4 px-4 shadow bg-white fixed top-0 left-0 z-10">
         <span className="text-xl font-bold text-indigo-700">PockeTodo</span>
         {isLoggedIn && (
-          <Button variant="outline" onClick={handleLogout}>
+          <Button variant="outline" onClick={logout}>
             Logout
           </Button>
         )}
       </nav>
 
-      {/* Spacer */}
       <div className="h-20" />
 
       <Card className="w-full max-w-md">
-        <CardHeader>
+        <CardHeader className="flex justify-between items-center">
           <CardTitle>Todo List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6 flex gap-2">
-            <Input
-              placeholder="Enter a task..."
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-            />
-            <select
-              className="rounded border px-2 py-1"
-              value={newVisibility}
-              onChange={(e) =>
-                setNewVisibility(e.target.value as TodoVisibility)
-              }
-            >
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
-            <Button onClick={handleAddTodo}>Add</Button>
-          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>+ New Todo</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Todo</DialogTitle>
+              </DialogHeader>
 
-          <div className="space-y-2">
-            {todos.length === 0 ? (
-              <p className="text-center text-muted-foreground">No todos yet</p>
-            ) : (
-              todos.map((todo) => (
-                <TodoItem
-                  key={todo.id}
-                  {...todo}
-                  isAuthor={todo.authorId === userId}
-                  onToggleCompleted={handleToggleCompleted}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit} // ✅ FIX: edit handler passed
+              <div className="space-y-3">
+                <Input
+                  placeholder="Enter a task..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
-              ))
-            )}
-          </div>
+                <select
+                  className="w-full rounded border px-3 py-2"
+                  value={visibility}
+                  onChange={(e) =>
+                    setVisibility(e.target.value as "public" | "private")
+                  }
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" onClick={reset}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button onClick={handleAdd}>Add Todo</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          {isLoading || isFetching ? (
+            <div className="text-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+            </div>
+          ) : isError ? (
+            <p className="text-red-500">Failed to load todos.</p>
+          ) : data?.items.length === 0 ? (
+            <p className="text-center text-muted-foreground">No todos found.</p>
+          ) : (
+            <>
+              {data?.items.map((todo) => (
+                <TodoItem
+                  id={todo.id}
+                  title={todo.title}
+                  completed={todo.completed}
+                  visibility={todo.visibility}
+                  authorId={todo.authorId}
+                  authorName={todo.authorName}
+                  created={todo.created}
+                  isAuthor={todo.authorId === userId}
+                  onToggleCompleted={(id, completed) =>
+                    toggleTodo.mutate({ id, completed: !completed })
+                  }
+                  onDelete={(id) => deleteTodo.mutate(id)}
+                  onEdit={
+                    (id, newTitle) => editTodo.mutate({ id, title: newTitle }) // ✅ FIXED
+                  }
+                />
+              ))}
+
+              <div className="flex justify-between items-center pt-4">
+                <Button
+                  variant="outline"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-500">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
