@@ -1,6 +1,6 @@
 import { Route } from "@tanstack/react-router";
 import { rootRoute } from "./root";
-import { ForgotPassword } from "../components/auth/ForgotPassword";
+import { ForgotPassword } from "@/components/auth/ForgotPassword";
 
 export const forgotPasswordRoute = new Route({
   getParentRoute: () => rootRoute,
