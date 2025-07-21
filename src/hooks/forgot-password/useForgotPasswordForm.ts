@@ -1,34 +1,43 @@
 import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { pb } from "@/lib/PocketBase";
 
 export const useForgotPasswordForm = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (email: string) => {
+      await pb.collection("users").requestPasswordReset(email);
+    },
+    onSuccess: () => {
+      setSuccessMsg("A reset link has been sent to your email address.");
+      setFormError(null);
+    },
+    onError: (error) => {
+      if (error instanceof Error && error.message) {
+        setFormError("No account found with that email address.");
+      } else {
+        setFormError("Failed to send reset link. Please try again.");
+      }
+      setSuccessMsg(null);
+    },
+  });
 
   const form = useForm({
     defaultValues: {
       email: "",
     },
-    onSubmit: async ({ value }) => {
-      setFormError(null);
-      setSuccessMsg(null);
-      setLoading(true);
-      try {
-        await pb.collection("users").requestPasswordReset(value.email);
-        setSuccessMsg("A reset link has been sent to your email address.");
-      } catch (err) {
-        if (err instanceof Error && err.message) {
-          setFormError("No account found with that email address.");
-        } else {
-          setFormError("Failed to send reset link. Please try again.");
-        }
-      } finally {
-        setLoading(false);
-      }
+    onSubmit: ({ value }) => {
+      mutation.mutate(value.email);
     },
   });
 
-  return { form, formError, successMsg, loading };
+  return {
+    form,
+    formError,
+    successMsg,
+    loading: mutation.isPending,
+  };
 };

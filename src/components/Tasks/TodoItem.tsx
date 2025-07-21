@@ -1,4 +1,5 @@
-// components/TodoItem.tsx
+// components/tasks/TodoItem.tsx
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,42 +43,11 @@ export const TodoItem = ({
 
   return (
     <div className="flex items-start justify-between bg-white p-3 rounded shadow w-full gap-3">
-      <div className="flex flex-col w-full">
-        {isEditing ? (
-          <Input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleEditSave}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleEditSave();
-              if (e.key === "Escape") setIsEditing(false);
-            }}
-            autoFocus
-          />
-        ) : (
-          <p
-            className={`font-medium break-words cursor-pointer ${
-              completed ? "line-through text-muted-foreground" : ""
-            }`}
-            onDoubleClick={() => isAuthor && setIsEditing(true)}
-          >
-            {title}
-          </p>
-        )}
-
-        {visibility === "public" && (
-          <p className="text-xs text-muted-foreground">
-            By: {authorName ?? "Anonymous"} • Created:{" "}
-            {created ? new Date(created).toLocaleString() : "Unknown"}
-          </p>
-        )}
-      </div>
-
-      <div className="flex gap-2 items-center shrink-0">
+      <div className="flex items-start gap-3 w-full">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onToggleCompleted(id, completed)}
+          onClick={() => onToggleCompleted(id, !completed)}
         >
           {completed ? (
             <CheckCircle className="w-5 h-5 text-green-600" />
@@ -86,6 +56,39 @@ export const TodoItem = ({
           )}
         </Button>
 
+        <div className="flex flex-col w-full">
+          {isEditing ? (
+            <Input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onBlur={handleEditSave}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleEditSave();
+                if (e.key === "Escape") setIsEditing(false);
+              }}
+              autoFocus
+            />
+          ) : (
+            <p
+              className={`font-medium break-words cursor-pointer ${
+                completed ? "line-through text-muted-foreground" : ""
+              }`}
+              onDoubleClick={() => isAuthor && setIsEditing(true)}
+            >
+              {title}
+            </p>
+          )}
+
+          {visibility === "public" && (
+            <p className="text-xs text-muted-foreground">
+              By: {authorName ?? "Anonymous"} • Created:{" "}
+              {created ? new Date(created).toLocaleString() : "Unknown"}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-2 items-center shrink-0">
         {isAuthor && (
           <>
             <Button
@@ -95,11 +98,7 @@ export const TodoItem = ({
             >
               <Pencil className="w-5 h-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(id)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => onDelete(id)}>
               <Trash className="w-5 h-5 text-red-500" />
             </Button>
           </>

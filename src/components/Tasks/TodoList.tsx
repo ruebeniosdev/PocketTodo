@@ -114,6 +114,7 @@ export const TodoList = () => {
             <>
               {data?.items.map((todo) => (
                 <TodoItem
+                  key={todo.id}
                   id={todo.id}
                   title={todo.title}
                   completed={todo.completed}
@@ -122,12 +123,12 @@ export const TodoList = () => {
                   authorName={todo.authorName}
                   created={todo.created}
                   isAuthor={todo.authorId === userId}
-                  onToggleCompleted={(id, completed) =>
-                    toggleTodo.mutate({ id, completed: !completed })
+                  onToggleCompleted={(id: string, completed: boolean) =>
+                    toggleTodo.mutate({ id, completed })
                   }
-                  onDelete={(id) => deleteTodo.mutate(id)}
-                  onEdit={
-                    (id, newTitle) => editTodo.mutate({ id, title: newTitle }) // ✅ FIXED
+                  onDelete={(id: string) => deleteTodo.mutate(id)}
+                  onEdit={(id: string, newTitle: string) =>
+                    editTodo.mutate({ id, title: newTitle })
                   }
                 />
               ))}
