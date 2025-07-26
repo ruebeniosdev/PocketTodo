@@ -18,7 +18,7 @@ import { useTodos } from "@/hooks/useTodos";
 import { useEditTodo } from "@/hooks/useEditTodo";
 import { useDeleteTodo } from "@/hooks/useDeleteTodo";
 import { useToggleTodo } from "@/hooks/useToggleTodo";
-import { TodoItem } from "@/components/tasks/TodoItem";
+import { TodoItem } from "@/components/Tasks/TodoItem";
 
 export const TodoList = () => {
   const { isLoggedIn, userId, authorName, logout } = useAuthInfo();
