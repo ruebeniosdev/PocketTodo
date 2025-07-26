@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useLoginForm } from "@/hooks/login/useLoginForm";
 import { validateEmail, validatePassword } from "@/lib/utils/validators";
-import { FieldError } from "@/components/auth/FieldError";
+// import { FieldError } from '@/components/auth/FieldError';
 
 export const Login = () => {
-  const { form, loginMutation, googleLogin, formError, setFormError } =
+  const { form, loginMutation, googleLogin, setFormError } =
     useLoginForm();
 
   const isLoading = loginMutation.isPending || googleLogin.isPending;
@@ -52,7 +52,11 @@ export const Login = () => {
                       onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isLoading}
                     />
-                    <FieldError error={field.state.meta.errors?.[0]} />
+                  {field.state.meta.errors && (
+                      <div className="text-red-500 text-sm">
+                        {field.state.meta.errors}
+                      </div>
+                    )}
                   </div>
                 )}
               </form.Field>
@@ -82,17 +86,21 @@ export const Login = () => {
                       onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isLoading}
                     />
-                    <FieldError error={field.state.meta.errors?.[0]} />
+                   {field.state.meta.errors && (
+                      <div className="text-red-500 text-sm">
+                        {field.state.meta.errors}
+                      </div>
+                    )}
                   </div>
                 )}
               </form.Field>
 
               {/* Form Error */}
-              {formError && (
+              {/* {formError && (
                 <div className="text-red-500 text-center text-sm">
                   {formError}
                 </div>
-              )}
+              )} */}
 
               {/* Buttons */}
               <div className="flex flex-col gap-3">

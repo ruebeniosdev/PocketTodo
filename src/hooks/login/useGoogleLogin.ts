@@ -8,6 +8,7 @@ export function useGoogleLogin(
   return useMutation({
     mutationFn: async () => {
       return await pb.collection("users").authWithOAuth2({ provider: "google" });
+      
     },
     onSuccess: () => {
       onSuccess();
